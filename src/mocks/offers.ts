@@ -4,6 +4,10 @@ export type Offer = {
   type: string;
   price: number;
   city: string;
+  location: {
+    latitude: number;
+    longitude: number;
+  };
   previewImage: string;
   images: string[];
   isPremium: boolean;
@@ -26,6 +30,10 @@ export const offers: Offer[] = [
     type: 'Apartment',
     price: 120,
     city: 'Amsterdam',
+    location: {
+      latitude: 52.3909553943508,
+      longitude: 4.85309666406198,
+    },
     previewImage: 'img/apartment-01.jpg',
     images: [
       'img/room.jpg',
@@ -67,6 +75,10 @@ export const offers: Offer[] = [
     type: 'Room',
     price: 80,
     city: 'Amsterdam',
+    location: {
+      latitude: 52.3609553943508,
+      longitude: 4.85309666406198,
+    },
     previewImage: 'img/room.jpg',
     images: ['img/room.jpg', 'img/apartment-01.jpg', 'img/apartment-02.jpg'],
     isPremium: false,
@@ -89,6 +101,10 @@ export const offers: Offer[] = [
     type: 'Apartment',
     price: 132,
     city: 'Amsterdam',
+    location: {
+      latitude: 52.3909553943508,
+      longitude: 4.929309666406198,
+    },
     previewImage: 'img/apartment-02.jpg',
     images: ['img/apartment-02.jpg', 'img/apartment-03.jpg'],
     isPremium: false,
@@ -110,7 +126,11 @@ export const offers: Offer[] = [
     title: 'White castle',
     type: 'Apartment',
     price: 180,
-    city: 'Cologne',
+    city: 'Amsterdam',
+    location: {
+      latitude: 52.3809553943508,
+      longitude: 4.939309666406198,
+    },
     previewImage: 'img/apartment-small-04.jpg',
     images: ['img/apartment-small-04.jpg', 'img/apartment-03.jpg', 'img/studio-01.jpg'],
     isPremium: false,
@@ -124,7 +144,7 @@ export const offers: Offer[] = [
     hostAvatar: 'img/avatar-angelina.jpg',
     hostIsPro: true,
     description: [
-      'Spacious apartment in Cologne with classic high ceilings.',
+      'Spacious apartment in Amsterdam with classic high ceilings.',
     ],
   },
 ];
