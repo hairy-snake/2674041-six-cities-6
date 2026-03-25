@@ -18,9 +18,10 @@ const defaultIcon = L.icon({
 
 type MapProps = {
   offers: Offer[];
+  className?: string;
 };
 
-const Map = ({ offers }: MapProps) => {
+const Map = ({ offers, className = 'cities__map map' }: MapProps) => {
   const mapRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -49,7 +50,7 @@ const Map = ({ offers }: MapProps) => {
     };
   }, [offers]);
 
-  return <section className="cities__map map" ref={mapRef}></section>;
+  return <section className={className} ref={mapRef}></section>;
 };
 
 export default Map;

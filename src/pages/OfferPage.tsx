@@ -1,10 +1,12 @@
 import { Link, useParams } from 'react-router-dom';
 
-import CommentForm from '@/src/components/CommentForm';
-import PlaceCard from '@/src/components/PlaceCard';
+import Map from '@/src/components/Map';
+import NearbyPlacesList from '@/src/components/NearbyPlacesList';
+import ReviewsList from '@/src/components/ReviewsList';
 import ErrNotFoundPage from '@/src/pages/ErrNotFoundPage';
 import AppRoutes from '@/src/route';
 import type { Offer } from '@/src/mocks/offers';
+import { reviews } from '@/src/mocks/reviews';
 
 type OfferPageProps = {
   offers: Offer[];
@@ -18,7 +20,8 @@ const OfferPage = ({ offers }: OfferPageProps) => {
     return <ErrNotFoundPage />;
   }
 
-  const nearPlaces = offers.filter((item) => item.id !== offer.id);
+  const nearPlaces = offers.filter((item) => item.id !== offer.id).slice(0, 3);
+  const offerReviews = reviews.filter((item) => item.offerId === offer.id);
 
   return (
     <div className="page">
@@ -137,72 +140,15 @@ const OfferPage = ({ offers }: OfferPageProps) => {
                   ))}
                 </div>
               </div>
-              <section className="offer__reviews reviews">
-                <h2 className="reviews__title">
-                  Reviews &middot; <span className="reviews__amount">2</span>
-                </h2>
-                <ul className="reviews__list">
-                  <li className="reviews__item">
-                    <div className="reviews__user user">
-                      <div className="reviews__avatar-wrapper user__avatar-wrapper">
-                        <img className="reviews__avatar user__avatar" src="img/avatar-max.jpg" width="54" height="54" alt="Reviews avatar" />
-                      </div>
-                      <span className="reviews__user-name">Max</span>
-                    </div>
-                    <div className="reviews__info">
-                      <div className="reviews__rating rating">
-                        <div className="reviews__stars rating__stars">
-                          <span style={{ width: '80%' }}></span>
-                          <span className="visually-hidden">Rating</span>
-                        </div>
-                      </div>
-                      <p className="reviews__text">
-                        A quiet cozy and picturesque that hides behind a a river by the unique lightness of Amsterdam.
-                        The building is green and from 18th century.
-                      </p>
-                      <time className="reviews__time" dateTime="2019-04-24">
-                        April 2019
-                      </time>
-                    </div>
-                  </li>
-                  <li className="reviews__item">
-                    <div className="reviews__user user">
-                      <div className="reviews__avatar-wrapper user__avatar-wrapper">
-                        <img className="reviews__avatar user__avatar" src="img/avatar-angelina.jpg" width="54" height="54" alt="Reviews avatar" />
-                      </div>
-                      <span className="reviews__user-name">Анна</span>
-                    </div>
-                    <div className="reviews__info">
-                      <div className="reviews__rating rating">
-                        <div className="reviews__stars rating__stars">
-                          <span style={{ width: '100%' }}></span>
-                          <span className="visually-hidden">Rating</span>
-                        </div>
-                      </div>
-                      <p className="reviews__text">
-                        Очень понравилось расположение и вид из окна. Чисто, тихий двор, до центра недалеко.
-                        Хозяин ответил быстро, заселение без проблем.
-                      </p>
-                      <time className="reviews__time" dateTime="2020-08-12">
-                        Август 2020
-                      </time>
-                    </div>
-                  </li>
-                </ul>
-                <CommentForm />
-              </section>
+              <ReviewsList reviews={offerReviews} />
             </div>
           </div>
-          <section className="offer__map map"></section>
+          <Map offers={nearPlaces} className="offer__map map" />
         </section>
         <div className="container">
           <section className="near-places places">
             <h2 className="near-places__title">Other places in the neighbourhood</h2>
-            <div className="near-places__list places__list">
-              {nearPlaces.map((nearOffer) => (
-                <PlaceCard key={nearOffer.id} offer={nearOffer} variant="near-places" />
-              ))}
-            </div>
+            <NearbyPlacesList offers={nearPlaces} />
           </section>
         </div>
       </main>
