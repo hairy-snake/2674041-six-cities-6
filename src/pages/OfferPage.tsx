@@ -1,18 +1,16 @@
 import { Link, useParams } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 
 import Map from '@/src/components/Map';
 import NearbyPlacesList from '@/src/components/NearbyPlacesList';
 import ReviewsList from '@/src/components/ReviewsList';
 import ErrNotFoundPage from '@/src/pages/ErrNotFoundPage';
 import AppRoutes from '@/src/route';
-import type { Offer } from '@/src/mocks/offers';
-import { reviews } from '@/src/mocks/reviews';
+import { reviews as reviewsMock } from '@/src/mocks/reviews';
+import type { RootState } from '@/src/store';
 
-type OfferPageProps = {
-  offers: Offer[];
-};
-
-const OfferPage = ({ offers }: OfferPageProps) => {
+const OfferPage = () => {
+  const offers = useSelector((state: RootState) => state.offers);
   const { id } = useParams();
   const offer = offers.find((item) => item.id === id);
 
@@ -21,7 +19,7 @@ const OfferPage = ({ offers }: OfferPageProps) => {
   }
 
   const nearPlaces = offers.filter((item) => item.id !== offer.id).slice(0, 3);
-  const offerReviews = reviews.filter((item) => item.offerId === offer.id);
+  const offerReviews = reviewsMock.filter((item) => item.offerId === offer.id);
 
   return (
     <div className="page">
