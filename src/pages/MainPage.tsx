@@ -1,20 +1,47 @@
+import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 
 import CitiesList from '@/src/components/CitiesList';
 import Map from '@/src/components/Map';
 import OffersList from '@/src/components/OffersList';
+import SortOptions from '@/src/components/SortOptions';
 import { CITIES } from '@/src/const/cities';
 import AppRoutes from '@/src/route';
+import type { Offer } from '@/src/mocks/offers';
 import type { RootState, AppDispatch } from '@/src/store';
 import { changeCity } from '@/src/store/action';
+
+function sortOffers(offers: Offer[], sort: string): Offer[] {
+  const list = [...offers];
+  if (sort === 'Popular') {
+    return list;
+  }
+  if (sort === 'Price: low to high') {
+    list.sort((a, b) => a.price - b.price);
+    return list;
+  }
+  if (sort === 'Price: high to low') {
+    list.sort((a, b) => b.price - a.price);
+    return list;
+  }
+  list.sort((a, b) => b.rating - a.rating);
+  return list;
+}
 
 const MainPage = () => {
   const dispatch = useDispatch<AppDispatch>();
   const city = useSelector((state: RootState) => state.city);
   const allOffers = useSelector((state: RootState) => state.offers);
 
-  const cityOffers = allOffers.filter((offer) => offer.city === city);
+  const [sort, setSort] = useState('Popular');
+  const [hoverId, setHoverId] = useState<string | null>(null);
+
+  const inCity = useMemo(
+    () => allOffers.filter((o) => o.city === city),
+    [allOffers, city]
+  );
+  const shown = useMemo(() => sortOffers(inCity, sort), [inCity, sort]);
 
   return (
     <div className="page page--gray page--main">
@@ -53,7 +80,7 @@ const MainPage = () => {
             <CitiesList
               cities={CITIES}
               activeCity={city}
-              onCityChange={(nextCity) => dispatch(changeCity(nextCity))}
+              onCityChange={(c) => dispatch(changeCity(c))}
             />
           </section>
         </div>
@@ -62,35 +89,13 @@ const MainPage = () => {
             <section className="cities__places places">
               <h2 className="visually-hidden">Places</h2>
               <b className="places__found">
-                {cityOffers.length} places to stay in {city}
+                {inCity.length} places to stay in {city}
               </b>
-              <form className="places__sorting" action="#" method="get">
-                <span className="places__sorting-caption">Sort by</span>
-                <span className="places__sorting-type" tabIndex={0}>
-                  Popular
-                  <svg className="places__sorting-arrow" width="7" height="4">
-                    <use xlinkHref="#icon-arrow-select"></use>
-                  </svg>
-                </span>
-                <ul className="places__options places__options--custom places__options--opened">
-                  <li className="places__option places__option--active" tabIndex={0}>
-                    Popular
-                  </li>
-                  <li className="places__option" tabIndex={0}>
-                    Price: low to high
-                  </li>
-                  <li className="places__option" tabIndex={0}>
-                    Price: high to low
-                  </li>
-                  <li className="places__option" tabIndex={0}>
-                    Top rated first
-                  </li>
-                </ul>
-              </form>
-              <OffersList offers={cityOffers} />
+              <SortOptions sort={sort} onChange={setSort} />
+              <OffersList offers={shown} onHoverOfferIdChange={setHoverId} />
             </section>
             <div className="cities__right-section">
-              <Map offers={cityOffers} />
+              <Map offers={shown} activeOfferId={hoverId} />
             </div>
           </div>
         </div>

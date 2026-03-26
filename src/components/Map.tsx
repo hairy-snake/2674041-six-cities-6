@@ -15,42 +15,63 @@ const defaultIcon = L.icon({
   popupAnchor: [1, -34],
   shadowSize: [41, 41],
 });
+const activeIcon = L.icon({
+  iconUrl: 'img/pin-active.svg',
+  iconSize: [27, 39],
+  iconAnchor: [13.5, 39],
+});
 
 type MapProps = {
   offers: Offer[];
+  activeOfferId?: string | null;
   className?: string;
 };
 
-const Map = ({ offers, className = 'cities__map map' }: MapProps) => {
-  const mapRef = useRef<HTMLDivElement | null>(null);
+const Map = ({
+  offers,
+  activeOfferId = null,
+  className = 'cities__map map',
+}: MapProps) => {
+  const rootRef = useRef<HTMLDivElement | null>(null);
+  const markersRef = useRef<Record<string, L.Marker>>({});
 
   useEffect(() => {
-    const container = mapRef.current;
-    if (!container || offers.length === 0) {
+    const el = rootRef.current;
+    if (!el || offers.length === 0) {
       return undefined;
     }
-
-    const map = L.map(container, { scrollWheelZoom: false }).setView(
+    markersRef.current = {};
+    const map = L.map(el, { scrollWheelZoom: false }).setView(
       [offers[0].location.latitude, offers[0].location.longitude],
-      13
+      13,
     );
-
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+      attribution: '&copy; OpenStreetMap',
     }).addTo(map);
-
-    const markers = offers.map((offer) =>
-      L.marker([offer.location.latitude, offer.location.longitude], { icon: defaultIcon }).addTo(map)
-    );
-
-    map.fitBounds(L.latLngBounds(markers.map((marker) => marker.getLatLng())).pad(0.2));
-
+    for (const offer of offers) {
+      const m = L.marker([offer.location.latitude, offer.location.longitude], {
+        icon: defaultIcon,
+      }).addTo(map);
+      markersRef.current[offer.id] = m;
+    }
+    const pts = Object.values(markersRef.current).map((m) => m.getLatLng());
+    map.fitBounds(L.latLngBounds(pts).pad(0.2));
     return () => {
       map.remove();
+      markersRef.current = {};
     };
   }, [offers]);
 
-  return <section className={className} ref={mapRef}></section>;
+  useEffect(() => {
+    for (const id of Object.keys(markersRef.current)) {
+      const m = markersRef.current[id];
+      if (m) {
+        m.setIcon(id === activeOfferId ? activeIcon : defaultIcon);
+      }
+    }
+  }, [activeOfferId, offers]);
+
+  return <section className={className} ref={rootRef}></section>;
 };
 
 export default Map;
