@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
-import type { Offer } from '@/src/mocks/offers';
+import type { Offer } from '@/src/types/offer';
 
 const LEAFLET_IMAGES = 'https://unpkg.com/leaflet@1.7.1/dist/images';
 
@@ -25,15 +25,23 @@ type MapProps = {
   offers: Offer[];
   activeOfferId?: string | null;
   className?: string;
+  onMarkerClick?: (offerId: string) => void;
+  onMarkerHoverChange?: (offerId: string | null) => void;
 };
 
 const Map = ({
   offers,
   activeOfferId = null,
   className = 'cities__map map',
+  onMarkerClick,
+  onMarkerHoverChange,
 }: MapProps) => {
   const rootRef = useRef<HTMLDivElement | null>(null);
   const markersRef = useRef<Record<string, L.Marker>>({});
+  const onMarkerClickRef = useRef(onMarkerClick);
+  onMarkerClickRef.current = onMarkerClick;
+  const onMarkerHoverChangeRef = useRef(onMarkerHoverChange);
+  onMarkerHoverChangeRef.current = onMarkerHoverChange;
 
   useEffect(() => {
     const el = rootRef.current;
@@ -52,6 +60,15 @@ const Map = ({
       const m = L.marker([offer.location.latitude, offer.location.longitude], {
         icon: defaultIcon,
       }).addTo(map);
+      m.on('click', () => {
+        onMarkerClickRef.current?.(offer.id);
+      });
+      m.on('mouseover', () => {
+        onMarkerHoverChangeRef.current?.(offer.id);
+      });
+      m.on('mouseout', () => {
+        onMarkerHoverChangeRef.current?.(null);
+      });
       markersRef.current[offer.id] = m;
     }
     const pts = Object.values(markersRef.current).map((m) => m.getLatLng());
@@ -71,7 +88,13 @@ const Map = ({
     }
   }, [activeOfferId, offers]);
 
-  return <section className={className} ref={rootRef}></section>;
+  return (
+    <section
+      className={className}
+      ref={rootRef}
+      style={{ position: 'relative', zIndex: 2 }}
+    />
+  );
 };
 
 export default Map;

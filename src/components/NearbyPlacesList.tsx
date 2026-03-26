@@ -1,5 +1,5 @@
 import PlaceCard from '@/src/components/PlaceCard';
-import type { Offer } from '@/src/mocks/offers';
+import type { Offer } from '@/src/types/offer';
 
 type NearbyPlacesListProps = {
   offers: Offer[];

@@ -1,4 +1,4 @@
-import type { Review as ReviewType } from '@/src/mocks/reviews';
+import type { Review as ReviewType } from '@/src/types/review';
 
 type ReviewProps = {
   review: ReviewType;

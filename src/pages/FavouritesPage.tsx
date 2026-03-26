@@ -3,7 +3,7 @@ import { useSelector } from 'react-redux';
 
 import PlaceCard from '@/src/components/PlaceCard';
 import AppRoutes from '@/src/route';
-import type { Offer } from '@/src/mocks/offers';
+import type { Offer } from '@/src/types/offer';
 import type { RootState } from '@/src/store';
 
 const FavouritesPage = () => {

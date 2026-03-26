@@ -1,10 +1,24 @@
 import { Link } from 'react-router-dom';
 
-import type { Offer } from '@/src/mocks/offers';
+import type { CSSProperties } from 'react';
+
+import type { Offer } from '@/src/types/offer';
+
+const CITIES_HIGHLIGHT_STYLE: CSSProperties = {
+  position: 'relative',
+  zIndex: 1,
+  opacity: 1,
+  backgroundColor: '#ffffff',
+  borderRadius: 5,
+  boxShadow: '0 0 0 2px #4481c3, 0 8px 24px rgba(68, 129, 195, 0.28)',
+};
 
 type PlaceCardProps = {
   offer: Offer;
   variant: 'cities' | 'favorites' | 'near-places';
+  isHighlighted?: boolean;
+  /** Корень <article> для scrollIntoView на главной (callback ref) */
+  onRootElement?: (el: HTMLElement | null) => void;
   onMouseEnter?: () => void;
   onMouseLeave?: () => void;
 };
@@ -12,6 +26,8 @@ type PlaceCardProps = {
 const PlaceCard = ({
   offer,
   variant,
+  isHighlighted = false,
+  onRootElement,
   onMouseEnter,
   onMouseLeave,
 }: PlaceCardProps) => {
@@ -32,11 +48,20 @@ const PlaceCard = ({
   const cardClass = cardClassByVariant[variant];
   const imageWrapperClass = imageWrapperClassByVariant[variant];
 
+  const cardStyle: CSSProperties | undefined =
+    variant === 'cities' && isHighlighted ? CITIES_HIGHLIGHT_STYLE : undefined;
+
   const imageWidth = variant === 'favorites' ? 150 : 260;
   const imageHeight = variant === 'favorites' ? 110 : 200;
 
   return (
-    <article className={cardClass} onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave}>
+    <article
+      ref={onRootElement}
+      className={cardClass}
+      style={cardStyle}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
+    >
       {offer.isPremium ? (
         <div className="place-card__mark">
           <span>Premium</span>

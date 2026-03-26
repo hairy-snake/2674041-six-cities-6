@@ -1,14 +1,17 @@
 import { configureStore } from '@reduxjs/toolkit';
 
-import { offers } from '@/src/mocks/offers';
-import { setOffers } from '@/src/store/action';
+import { api } from '@/src/api';
 import { reducer } from '@/src/store/reducer';
 
 export const store = configureStore({
   reducer,
+  middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware({
+      thunk: {
+        extraArgument: api,
+      },
+    }),
 });
-
-store.dispatch(setOffers(offers));
 
 export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;

@@ -1,25 +1,52 @@
-import { Link, useParams } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 
+import { adaptOffer } from '@/src/adapters/offer';
+import { api } from '@/src/api';
 import Map from '@/src/components/Map';
 import NearbyPlacesList from '@/src/components/NearbyPlacesList';
 import ReviewsList from '@/src/components/ReviewsList';
+import Spinner from '@/src/components/Spinner';
 import ErrNotFoundPage from '@/src/pages/ErrNotFoundPage';
 import AppRoutes from '@/src/route';
-import { reviews as reviewsMock } from '@/src/mocks/reviews';
+import type { Offer } from '@/src/types/offer';
 import type { RootState } from '@/src/store';
 
 const OfferPage = () => {
+  const navigate = useNavigate();
   const offers = useSelector((state: RootState) => state.offers);
   const { id } = useParams();
-  const offer = offers.find((item) => item.id === id);
+  const [offer, setOffer] = useState<Offer | null>(null);
+  const [failed, setFailed] = useState(false);
 
-  if (!offer) {
+  useEffect(() => {
+    if (!id) {
+      setFailed(true);
+      return;
+    }
+    setFailed(false);
+    setOffer(null);
+    api
+      .get(`/offers/${id}`)
+      .then(({ data }) => setOffer(adaptOffer(data as Record<string, unknown>)))
+      .catch(() => setFailed(true));
+  }, [id]);
+
+  if (!id || failed) {
     return <ErrNotFoundPage />;
   }
+  if (!offer) {
+    return (
+      <div className="page">
+        <Spinner />
+      </div>
+    );
+  }
 
-  const nearPlaces = offers.filter((item) => item.id !== offer.id).slice(0, 3);
-  const offerReviews = reviewsMock.filter((item) => item.offerId === offer.id);
+  const nearPlaces = offers
+    .filter((item) => item.id !== offer.id && item.city === offer.city)
+    .slice(0, 3);
 
   return (
     <div className="page">
@@ -138,10 +165,14 @@ const OfferPage = () => {
                   ))}
                 </div>
               </div>
-              <ReviewsList reviews={offerReviews} />
+              <ReviewsList reviews={[]} />
             </div>
           </div>
-          <Map offers={nearPlaces} className="offer__map map" />
+          <Map
+            offers={nearPlaces}
+            className="offer__map map"
+            onMarkerClick={(offerId) => navigate(`/offer/${offerId}`)}
+          />
         </section>
         <div className="container">
           <section className="near-places places">

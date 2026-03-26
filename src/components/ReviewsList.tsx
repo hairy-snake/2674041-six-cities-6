@@ -1,6 +1,6 @@
 import CommentForm from '@/src/components/CommentForm';
 import Review from '@/src/components/Review';
-import type { Review as ReviewType } from '@/src/mocks/reviews';
+import type { Review as ReviewType } from '@/src/types/review';
 
 type ReviewsListProps = {
   reviews: ReviewType[];
