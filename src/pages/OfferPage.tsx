@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { useEffect, useMemo, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 
+import AppHeader from '@/src/components/AppHeader';
 import { adaptOffer } from '@/src/adapters/offer';
 import { api } from '@/src/api';
 import Map from '@/src/components/Map';
@@ -9,13 +10,16 @@ import NearbyPlacesList from '@/src/components/NearbyPlacesList';
 import ReviewsList from '@/src/components/ReviewsList';
 import Spinner from '@/src/components/Spinner';
 import ErrNotFoundPage from '@/src/pages/ErrNotFoundPage';
-import AppRoutes from '@/src/route';
 import type { Offer } from '@/src/types/offer';
 import type { RootState } from '@/src/store';
 
 const OfferPage = () => {
   const navigate = useNavigate();
   const offers = useSelector((state: RootState) => state.offers);
+  const favoritesCount = useMemo(
+    () => offers.filter((item) => item.isFavorite).length,
+    [offers]
+  );
   const { id } = useParams();
   const [offer, setOffer] = useState<Offer | null>(null);
   const [failed, setFailed] = useState(false);
@@ -50,33 +54,7 @@ const OfferPage = () => {
 
   return (
     <div className="page">
-      <header className="header">
-        <div className="container">
-          <div className="header__wrapper">
-            <div className="header__left">
-              <Link className="header__logo-link" to={AppRoutes.Main}>
-                <img className="header__logo" src="img/logo.svg" alt="6 cities logo" width="81" height="41" />
-              </Link>
-            </div>
-            <nav className="header__nav">
-              <ul className="header__nav-list">
-                <li className="header__nav-item user">
-                  <Link className="header__nav-link header__nav-link--profile" to={AppRoutes.Favorites}>
-                    <div className="header__avatar-wrapper user__avatar-wrapper"></div>
-                    <span className="header__user-name user__name">Oliver.conner@gmail.com</span>
-                    <span className="header__favorite-count">3</span>
-                  </Link>
-                </li>
-                <li className="header__nav-item">
-                  <a className="header__nav-link" href="#">
-                    <span className="header__signout">Sign out</span>
-                  </a>
-                </li>
-              </ul>
-            </nav>
-          </div>
-        </div>
-      </header>
+      <AppHeader favoritesCount={favoritesCount} />
 
       <main className="page__main page__main--offer">
         <section className="offer">

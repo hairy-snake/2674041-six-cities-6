@@ -10,11 +10,12 @@ import OfferPage from '@/src/pages/OfferPage';
 import ErrNotFoundPage from '@/src/pages/ErrNotFoundPage';
 import PrivateRoute from '@/src/PrivateRoute';
 import type { AppDispatch } from '@/src/store';
-import { fetchOffers } from '@/src/store/action';
+import { checkAuth, fetchOffers } from '@/src/store/action';
 
 const App: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   useEffect(() => {
+    dispatch(checkAuth());
     dispatch(fetchOffers());
   }, [dispatch]);
 
@@ -26,7 +27,7 @@ const App: React.FC = () => {
         <Route
           path={AppRoutes.Favorites}
           element={
-            <PrivateRoute auth={false}>
+            <PrivateRoute>
               <FavouritesPage />
             </PrivateRoute>
           }

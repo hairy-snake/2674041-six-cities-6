@@ -1,13 +1,13 @@
 import { useMemo, useRef, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 
+import AppHeader from '@/src/components/AppHeader';
 import CitiesList from '@/src/components/CitiesList';
 import Map from '@/src/components/Map';
 import OffersList from '@/src/components/OffersList';
 import SortOptions from '@/src/components/SortOptions';
 import { CITIES } from '@/src/const/cities';
-import AppRoutes from '@/src/route';
 import Spinner from '@/src/components/Spinner';
 import type { Offer } from '@/src/types/offer';
 import type { RootState, AppDispatch } from '@/src/store';
@@ -53,36 +53,14 @@ const MainPage = () => {
     [allOffers, city]
   );
   const shown = useMemo(() => sortOffers(inCity, sort), [inCity, sort]);
+  const favoritesCount = useMemo(
+    () => allOffers.filter((offer) => offer.isFavorite).length,
+    [allOffers]
+  );
 
   return (
     <div className="page page--gray page--main">
-      <header className="header">
-        <div className="container">
-          <div className="header__wrapper">
-            <div className="header__left">
-              <Link className="header__logo-link header__logo-link--active" to={AppRoutes.Main}>
-                <img className="header__logo" src="img/logo.svg" alt="6 cities logo" width="81" height="41" />
-              </Link>
-            </div>
-            <nav className="header__nav">
-              <ul className="header__nav-list">
-                <li className="header__nav-item user">
-                  <Link className="header__nav-link header__nav-link--profile" to={AppRoutes.Favorites}>
-                    <div className="header__avatar-wrapper user__avatar-wrapper"></div>
-                    <span className="header__user-name user__name">Oliver.conner@gmail.com</span>
-                    <span className="header__favorite-count">3</span>
-                  </Link>
-                </li>
-                <li className="header__nav-item">
-                  <a className="header__nav-link" href="#">
-                    <span className="header__signout">Sign out</span>
-                  </a>
-                </li>
-              </ul>
-            </nav>
-          </div>
-        </div>
-      </header>
+      <AppHeader logoLinkActive favoritesCount={favoritesCount} />
 
       <main className="page__main page__main--index">
         <h1 className="visually-hidden">Cities</h1>
