@@ -53,6 +53,7 @@ export const logout = createAsyncThunk<void, void, { extra: AxiosInstance }>(
     try {
       await axiosApi.delete('/logout');
     } catch {
+      void 0;
     }
     dropToken();
   }

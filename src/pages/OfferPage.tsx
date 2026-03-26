@@ -1,27 +1,41 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { isAxiosError } from 'axios';
 import { useSelector } from 'react-redux';
 
 import AppHeader from '@/src/components/AppHeader';
 import { adaptOffer } from '@/src/adapters/offer';
+import { adaptReview } from '@/src/adapters/review';
 import { api } from '@/src/api';
 import Map from '@/src/components/Map';
 import NearbyPlacesList from '@/src/components/NearbyPlacesList';
 import ReviewsList from '@/src/components/ReviewsList';
 import Spinner from '@/src/components/Spinner';
 import ErrNotFoundPage from '@/src/pages/ErrNotFoundPage';
+import { AuthorizationStatus } from '@/src/const/authorization';
 import type { Offer } from '@/src/types/offer';
+import type { Review } from '@/src/types/review';
 import type { RootState } from '@/src/store';
+
+function sortReviewsByDateDesc(list: Review[]): Review[] {
+  return [...list].sort(
+    (a, b) => new Date(b.dateTime).getTime() - new Date(a.dateTime).getTime()
+  );
+}
 
 const OfferPage = () => {
   const navigate = useNavigate();
   const offers = useSelector((state: RootState) => state.offers);
+  const authorizationStatus = useSelector((s: RootState) => s.authorizationStatus);
   const favoritesCount = useMemo(
     () => offers.filter((item) => item.isFavorite).length,
     [offers]
   );
+
   const { id } = useParams();
   const [offer, setOffer] = useState<Offer | null>(null);
+  const [nearby, setNearby] = useState<Offer[]>([]);
+  const [reviews, setReviews] = useState<Review[]>([]);
   const [failed, setFailed] = useState(false);
 
   useEffect(() => {
@@ -29,13 +43,58 @@ const OfferPage = () => {
       setFailed(true);
       return;
     }
+    let cancelled = false;
     setFailed(false);
     setOffer(null);
-    api
-      .get(`/offers/${id}`)
-      .then(({ data }) => setOffer(adaptOffer(data as Record<string, unknown>)))
-      .catch(() => setFailed(true));
+    setNearby([]);
+    setReviews([]);
+
+    (async () => {
+      try {
+        const { data: raw } = await api.get<Record<string, unknown>>(`/offers/${id}`);
+        if (cancelled) {
+          return;
+        }
+        setOffer(adaptOffer(raw));
+
+        try {
+          const [nearRes, commRes] = await Promise.all([
+            api.get<Record<string, unknown>[]>(`/offers/${id}/nearby`),
+            api.get<Record<string, unknown>[]>(`/comments/${id}`),
+          ]);
+          if (cancelled) {
+            return;
+          }
+          setNearby(nearRes.data.map((item) => adaptOffer(item)).slice(0, 3));
+          setReviews(sortReviewsByDateDesc(commRes.data.map((item) => adaptReview(item, id))));
+        } catch {
+          if (!cancelled) {
+            setNearby([]);
+            setReviews([]);
+          }
+        }
+      } catch (err) {
+        if (cancelled) {
+          return;
+        }
+        if (isAxiosError(err) && err.response?.status === 404) {
+          setFailed(true);
+        } else {
+          setFailed(true);
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
   }, [id]);
+
+  const showCommentForm = authorizationStatus === AuthorizationStatus.Auth;
+
+  const handleCommentPosted = (review: Review) => {
+    setReviews((prev) => sortReviewsByDateDesc([...prev, review]));
+  };
 
   if (!id || failed) {
     return <ErrNotFoundPage />;
@@ -47,10 +106,6 @@ const OfferPage = () => {
       </div>
     );
   }
-
-  const nearPlaces = offers
-    .filter((item) => item.id !== offer.id && item.city === offer.city)
-    .slice(0, 3);
 
   return (
     <div className="page">
@@ -143,11 +198,16 @@ const OfferPage = () => {
                   ))}
                 </div>
               </div>
-              <ReviewsList reviews={[]} />
+              <ReviewsList
+                reviews={reviews}
+                offerId={offer.id}
+                showCommentForm={showCommentForm}
+                onCommentPosted={handleCommentPosted}
+              />
             </div>
           </div>
           <Map
-            offers={nearPlaces}
+            offers={nearby}
             className="offer__map map"
             onMarkerClick={(offerId) => navigate(`/offer/${offerId}`)}
           />
@@ -155,7 +215,7 @@ const OfferPage = () => {
         <div className="container">
           <section className="near-places places">
             <h2 className="near-places__title">Other places in the neighbourhood</h2>
-            <NearbyPlacesList offers={nearPlaces} />
+            <NearbyPlacesList offers={nearby} />
           </section>
         </div>
       </main>

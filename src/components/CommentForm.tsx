@@ -1,14 +1,60 @@
 import { useId, useState } from 'react';
+import { isAxiosError } from 'axios';
 
-const CommentForm = () => {
+import { adaptReview } from '@/src/adapters/review';
+import { api } from '@/src/api';
+import type { Review } from '@/src/types/review';
+
+type CommentFormProps = {
+  offerId: string;
+  onCommentPosted: (review: Review) => void;
+};
+
+const CommentForm = ({ offerId, onCommentPosted }: CommentFormProps) => {
   const formId = useId();
   const [rating, setRating] = useState(0);
   const [review, setReview] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const isSubmitEnabled = rating > 0 && review.length >= 50;
+  const isSubmitEnabled = rating > 0 && review.length >= 50 && !submitting;
+
+  const handleSubmit = (evt: React.FormEvent<HTMLFormElement>) => {
+    evt.preventDefault();
+    if (!isSubmitEnabled) {
+      return;
+    }
+    setError(null);
+    setSubmitting(true);
+    void api
+      .post<Record<string, unknown>>(`/comments/${offerId}`, {
+        comment: review,
+        rating,
+      })
+      .then(({ data }) => {
+        onCommentPosted(adaptReview(data, offerId));
+        setRating(0);
+        setReview('');
+      })
+      .catch((err) => {
+        const msg =
+          isAxiosError(err) && err.response?.data && typeof err.response.data === 'object'
+            ? String((err.response.data as { message?: string }).message ?? 'Ошибка отправки')
+            : 'Не удалось отправить отзыв';
+        setError(msg);
+      })
+      .finally(() => {
+        setSubmitting(false);
+      });
+  };
 
   return (
-    <form className="reviews__form form" action="#" method="post">
+    <form className="reviews__form form" action="#" method="post" onSubmit={handleSubmit}>
+      {error ? (
+        <p className="reviews__error" style={{ color: '#c00', marginBottom: 12 }}>
+          {error}
+        </p>
+      ) : null}
       <label className="reviews__label form__label" htmlFor={`${formId}-review`}>
         Your review
       </label>
@@ -102,7 +148,7 @@ const CommentForm = () => {
           stay with at least <b className="reviews__text-amount">50 characters</b>.
         </p>
         <button className="reviews__submit form__submit button" type="submit" disabled={!isSubmitEnabled}>
-          Submit
+          {submitting ? 'Sending…' : 'Submit'}
         </button>
       </div>
     </form>
